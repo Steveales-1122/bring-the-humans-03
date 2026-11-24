@@ -15,7 +15,7 @@
 // Run it locally from the repository root:
 //   mkdir -p out && MAKEFUN_BOT_DIR=. MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { copyFileSync, mkdirSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const BOT_DIR = process.env.MAKEFUN_BOT_DIR ?? '/bot';
@@ -31,6 +31,13 @@ try {
   copyFileSync(source, target);
 } catch (err) {
   console.error(`could not copy ${NAME} from ${BOT_DIR}: ${(err as Error).message}`);
+  process.exit(1);
+}
+
+// The gate reads the copy, so confirm it is the file we were given, byte
+// for byte, rather than trusting the copy to have landed intact.
+if (!readFileSync(source).equals(readFileSync(target))) {
+  console.error(`${NAME} in ${OUTPUT_DIR} does not match ${source}`);
   process.exit(1);
 }
 
